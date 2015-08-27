@@ -1,6 +1,6 @@
 # Sudoku Solver
 # Written by Chris Shaver
-# Created August 5, 2015 - August 20, 2015
+# Created August 5, 2015 - August 27, 2015
 # Uses Python3, Tkinter
 # Supports both text mode and GUI mode
 #
@@ -9,10 +9,11 @@
 #
 # Future possible improvements:
 # -- Add the ability to edit (change cells) of GUI puzzle, improve usability
-# -- Add a file interface, to do large-scale testing of Sudoku engine
 # -- Enhance GUI to support 4x4 puzzles, and possibly larger
 # -- Enhance CLI to support up to 8x8 size puzzles
+# -- Web app
 # -- Python2.7 version?
+# -- Port to other languages?
 
 import tkinter
 from tkinter.constants import *
@@ -79,18 +80,34 @@ class Sudoku(object):
             result.append('\n')
         return ''.join(result)
 
+    def __eq__(self, other):
+        """Return True if the two puzzles are identically sized and filled
+        with identical values, False otherwise"""
+        if self.box_size != other.box_size:
+            return False
+        if self.cells_filled != other.cells_filled:
+            return False
+        for row in range(self.max_val):
+            for col in range(self.max_val):
+                if self.cell[row][col].value != other.cell[row][col].value:
+                    return False
+        return True
+
+    def __ne__(self, other):
+        return not Sudoku.__eq__(self, other)
+
     def populate(self):
         """Needs to be expanded to handle non-numeric input for 4x4 through
         8x8 puzzle sizes"""
         for row in range(self.max_val):
-            print('Enter the values in Row #', row+1, ' (_ for no value): ', sep='', end='')
+            print('Enter the values in Row #', row+1, ' (-, _, 0, or space for no value): ', sep='', end='')
             new_row = input()
             if len(new_row) != self.max_val:
                 print('You didn\'t enter the correct number of values - aborting')
                 return
             else:
                 for col in range(self.max_val):
-                    if new_row[col] != '_':
+                    if new_row[col] not in ['_','-',' ','0']:
                         new_value = int(new_row[col])
                         if not self.set_cell(new_value, row, col):
                             print('Cannot set the cell at Row #',row+1,' Column #',col+1,' to ',new_value, sep='')
@@ -355,7 +372,7 @@ class SudokuGui():
         self.deselect_cell()
         puzzle_2solve = copy.deepcopy(self.puzzle)
         solution = self.puzzle.solve()
-        if solution == None:
+        if solution is None:
             self.canvas.itemconfig(self.error_message, text='No solution')
         else:
             for row in range(self.puzzle.max_val):
@@ -377,7 +394,7 @@ if __name__ == '__main__':
         print(puzzle)
         puzzle.populate()
         solution = puzzle.solve()
-        if solution == None:
+        if solution is None:
             print('No solution')
         else:
             print('Puzzle has been solved!')
