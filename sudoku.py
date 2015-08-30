@@ -1,6 +1,6 @@
 # Sudoku Solver
 # Written by Chris Shaver
-# Created August 5, 2015 - August 27, 2015
+# Created August 5, 2015 - August 29, 2015
 # Uses Python3, Tkinter
 # Supports both text mode and GUI mode
 #
@@ -9,8 +9,7 @@
 #
 # Future possible improvements:
 # -- Add the ability to edit (change cells) of GUI puzzle, improve usability
-# -- Enhance GUI to support 4x4 puzzles, and possibly larger
-# -- Enhance CLI to support up to 8x8 size puzzles
+# -- Enhance GUI to support 4x4 puzzles
 # -- Web app
 # -- Python2.7 version?
 # -- Port to other languages?
@@ -35,11 +34,11 @@ class Cell(object):
 
     def __str__(self):
         if self.value==0:
-            return '_'
+            return '-'
         if self.value<10:
             return '%.1d' % (self.value)
         if self.value<36:
-            return chr(self.value + 55) # Represent 10-35 aa A-Z
+            return chr(self.value + 55) # Represent 10-35 as A-Z
         if self.value<65:
             return chr(self.value + 61) # Represent 36-64 as a-z, {, |, }
         else: return '*' # Give up for values > 64
@@ -97,22 +96,39 @@ class Sudoku(object):
         return not Sudoku.__eq__(self, other)
 
     def populate(self):
-        """Needs to be expanded to handle non-numeric input for 4x4 through
-        8x8 puzzle sizes"""
+        """Prompt user to enter each row of the puzzle.  Handles up to 8x8 size
+        puzzles.  Format: no separation between cells.  Must enter correct
+        number of cells for each row else entry aborts."""
         for row in range(self.max_val):
             print('Enter the values in Row #', row+1, ' (-, _, 0, or space for no value): ', sep='', end='')
             new_row = input()
             if len(new_row) != self.max_val:
-                print('You didn\'t enter the correct number of values - aborting')
+                print('You didn\'t enter the correct number of values - aborting entry')
                 return
             else:
                 for col in range(self.max_val):
-                    if new_row[col] not in ['_','-',' ','0']:
-                        new_value = int(new_row[col])
+                    new_value = self.char2value(new_row[col])
+                    if new_value != 0:
                         if not self.set_cell(new_value, row, col):
-                            print('Cannot set the cell at Row #',row+1,' Column #',col+1,' to ',new_value, sep='')
+                            print('Cannot set the cell at Row #',row+1,' Column #',col+1,' to ',new_row[col], sep='')
                 print(self)
-    
+
+    def char2value(self, c):
+        """Given a character c, return the integer to use in setting that
+        cell's value.  Empty cells are denoted by '_', '-', '0', or ' ' and the
+        value 0 is returned.  Otherwise, possible cell values are 1-9, A-Z (for
+        10-35), a-z (for 36-61), '{' for 62, '|' for 63, '}' for 64.  If c is
+        not any of these characters, return max_val+1."""
+        if c in ['_','-',' ','0']:
+            return 0
+        if c.isnumeric():
+            return int(c)
+        if c.isupper():
+            return 10 + ord(c) - ord('A')
+        if c.islower() or c in ['{','|','}']:
+            return 36 + ord(c) - ord('a')
+        return self.max_val + 1
+
     def set_cell(self, value, row, col):
         """Check cell[row][col] to see if it can possibly be set to the
         supplied value. If not, return False.  If so, set it to
@@ -390,12 +406,16 @@ if __name__ == '__main__':
         sgui = SudokuGui()
         gui.mainloop()
     else: # Text mode
-        puzzle = Sudoku()
-        print(puzzle)
-        puzzle.populate()
-        solution = puzzle.solve()
-        if solution is None:
-            print('No solution')
+        b = input('Enter puzzle size: # of large interior boxes along a side (typically 3): ')
+        if b in ['3','4','5','6','7','8']:
+            puzzle = Sudoku(int(b))
+            print(puzzle)
+            puzzle.populate()
+            solution = puzzle.solve()
+            if solution is None:
+                print('No solution')
+            else:
+                print('Puzzle has been solved!')
+                print(solution)
         else:
-            print('Puzzle has been solved!')
-            print(solution)
+            print('I cannot solve a puzzle of that size')

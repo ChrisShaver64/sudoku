@@ -1,6 +1,6 @@
 # Sudoku Engine Tester
 # Written by Chris Shaver
-# Created August 24, 2015 - August 27, 2015
+# Created August 24, 2015 - August 30, 2015
 # Uses Python3
 #
 # Copyright 2015 by Christopher J. Shaver
@@ -53,7 +53,7 @@ def process_sudoku_dat( fin ):
                     break
             elif answer is None: # Time to start reading the answer
                 if len(line) == max_val:
-                    answer = Sudoku()
+                    answer = Sudoku(box_size)
                     a_line_count = 1 # Count of the answer line being processed
                     if not fill_puzzle( answer, line, a_line_count, f_line_count ):
                         break
@@ -88,8 +88,8 @@ def fill_puzzle( puzzle, line, p_line_count, f_line_count ):
     out error message)"""
     col = 0
     for char in line:
-        if char not in ['_','-',' ','0']:
-            new_value = int(char)
+        new_value = puzzle.char2value(char)
+        if new_value != 0:
             if not puzzle.set_cell( new_value, p_line_count-1, col ):
                 print('Line',f_line_count,'Column',col+1,': Cannot set that cell to',char)
                 return False
